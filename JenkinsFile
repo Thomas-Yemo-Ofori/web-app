@@ -1,0 +1,85 @@
+COLOR_MAP = [
+    'SUCCESS': 'good',
+    'FAILURE': 'danger',
+]
+
+pipeline {
+    agent any
+
+    tools {
+        maven "maven3.9.6"
+    }
+
+    stages {
+        stage("Git Clone") {
+            steps {
+                //Cloning the source code from the repository
+                git branch: 'main', url: 'https://github.com/Thomas-Yemo-Ofori/web-app.git'
+            }
+        }
+
+        stage("Build with Maven") {
+            steps {
+                //Buildig the cloned source code from the git repository
+                sh "mvn clean"
+            }
+        }
+
+        stage("Unit Testing with Maven") {
+            steps {
+                //Running unit tests on the built application using Maven
+                sh "mvn test"
+            }
+        }
+
+        stage("Package with Maven") {
+            steps {
+                //Packaging the built and tested application into a deployable artifact
+                sh "mvn package"
+            }
+        }
+
+        stage("Analysing with Sonarqube") {
+            environment {
+                ScannerHome = tool 'sonar5.0'
+            }
+            steps {
+                script {
+                    withSonarQubeEnv('sonarqube') {
+                        sh '${ScannerHome}/bin/sonar-scanner -Dsonar.projectKey=jomacsweb'
+                    }
+                }
+            }
+        }
+        
+        stage("Quality Gate Checks") {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: true
+                }    
+            }
+        }
+        
+        stage("Upload to Nexus") {
+            steps {
+                nexusArtifactUploader artifacts: [[artifactId: 'maven-web-aplication', classifier: '', file: '/var/lib/jenkins/workspace/pipeline-JF/target/web-app.war', type: 'war']], credentialsId: 'nexus', groupId: 'com.mt', nexusUrl: '54.227.95.164:8081', nexusVersion: 'nexus3', protocol: 'http', repository: 'webapp-release', version: '3.1.2-RELEASE'
+            }
+        }
+        
+        stage("Deploy to UAT") {
+            steps {
+                deploy adapters: [tomcat9(credentialsId: 'tomcat-credentials', path: '', url: 'http://54.162.247.198:8080/')], contextPath: null, war: 'target/*.war'
+            }
+        }
+    }
+        
+    post {
+        success {
+            slackSend channel: 'team11-africa', color: 'good', message: "Build successful: ${currentBuild.fullDisplayName}"
+        }
+    
+        failure {
+            slackSend channel: 'team11-africa', color: 'danger', message: "Build failed: ${currentBuild.fullDisplayName}"
+        }
+    }
+}
