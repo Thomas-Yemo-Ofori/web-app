@@ -62,7 +62,7 @@ pipeline {
         
         stage("Upload to Nexus") {
             steps {
-                nexusArtifactUploader artifacts: [[artifactId: 'maven-web-aplication', classifier: '', file: '/var/lib/jenkins/workspace/pipeline-JF/target/web-app.war', type: 'war']], credentialsId: 'nexus', groupId: 'com.mt', nexusUrl: '54.227.95.164:8081', nexusVersion: 'nexus3', protocol: 'http', repository: 'webapp-release', version: '3.1.2-RELEASE'
+                nexusArtifactUploader artifacts: [[artifactId: 'maven-web-aplication', classifier: '', file: '/var/lib/jenkins/workspace/pipeline-JF/target/web-app.war', type: 'war']], credentialsId: 'nexus', groupId: 'com.mt', nexusUrl: '54.227.95.164:8081', nexusVersion: 'nexus3', protocol: 'http', repository: 'webapp-snapshot', version: '3.1.2-SNAPSHOT'
             }
         }
         
@@ -75,11 +75,11 @@ pipeline {
         
     post {
         success {
-            slackSend channel: 'team11-africa', color: 'good', message: "Build successful: ${currentBuild.fullDisplayName}"
+            slackSend channel: 'ci-cd-practice', color: 'good', message: "Build successful: ${currentBuild.fullDisplayName}"
         }
     
         failure {
-            slackSend channel: 'team11-africa', color: 'danger', message: "Build failed: ${currentBuild.fullDisplayName}"
+            slackSend channel: 'ci-cd-practice', color: 'danger', message: "Build failed: ${currentBuild.fullDisplayName}"
         }
     }
 }
