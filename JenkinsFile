@@ -74,16 +74,6 @@ pipeline {
     }
         
     post {
-        success {
-            slackSend channel: 'ci-cd-practice', color: 'good', message: "Build successful: ${currentBuild.fullDisplayName}"
-        }
-    
-        failure {
-            slackSend channel: 'ci-cd-practice', color: 'danger', message: "Build failed: ${currentBuild.fullDisplayName}"
-        }
-    }
-
-    post {
         always {
             echo 'This will always run'
         }
