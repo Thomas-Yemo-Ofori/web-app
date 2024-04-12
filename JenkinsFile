@@ -82,4 +82,21 @@ pipeline {
             slackSend channel: 'ci-cd-practice', color: 'danger', message: "Build failed: ${currentBuild.fullDisplayName}"
         }
     }
+
+    post {
+        always {
+            echo 'This will always run'
+        }
+        success {
+            echo 'This will run only if successful'
+        }
+        failure {
+            echo 'This will run only if Pipeline Failed'
+            // Sending an email notification with details about the failure
+            mail bcc: '', body: "<b>Example</b><br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL de build: ${env.BUILD_URL}", cc: 'niiyemoofori7@gmail.com', charset: 'UTF-8', from: '', mimeType: 'text/html', replyTo: '', subject: "ERROR CI: Project name -> ${env.JOB_NAME}", to: "thomasofori74@gmail.com";
+        }
+        unstable {
+            echo 'This will run only if the run was marked as unstable'
+        }
+    }
 }
